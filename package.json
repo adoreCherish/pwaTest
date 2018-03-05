@@ -1,0 +1,35 @@
+{
+  "name": "pwatest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "service-worker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adoreCherish/adorecherish.github.io.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adoreCherish/adorecherish.github.io/issues"
+  },
+  "homepage": "https://github.com/adoreCherish/adorecherish.github.io#readme",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "co": "^4.6.0",
+    "koa": "^2.5.0",
+    "koa-simple-router": "^0.2.0",
+    "koa-static": "^4.0.2",
+    "path": "^0.12.7",
+    "regenerator-runtime": "^0.11.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-latest": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "koa-swig": "^2.2.1"
+  }
+}

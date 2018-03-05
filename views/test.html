@@ -1,0 +1,154 @@
+{% extends 'layout.html' %}
+{% block title %}My Page{% endblock %}
+{% block head %}
+    <!-- <link rel="stylesheet" href="../css/style.css"> -->
+    <link rel="manifest" href="../manifest.json">
+<!-- {% parent %} -->
+    <!-- <link rel="stylesheet" href="custom.css"> -->
+{% endblock %}
+{% block content %}
+  <!-- 引用hello图片 -->
+  <!-- <img src="./images/timg.jpg" alt="" /> -->
+  <!-- 禁用基础的javascript文件 -->
+  <h1>hello caching world</h1>
+  <h3>一些提示信息</h3>
+  <ul>
+      <li>浏览器是否支持：<span id="isSupport"></span></li>
+      <li>service worker是否注册成功：<span id="isSuccess"></span></li>
+      <li>当前注册状态：<span id="state"></span></li>
+      <li>当前service worker状态：<span id="swState"></span></li>
+  </ul>
+  <button id="btnSave">添加到主屏幕</button>
+  <main>
+    <p>Welcome to the push messaging codelab. The button below needs to be
+    fixed to support subscribing to push.</p>
+    <p>
+      <button disabled class="js-push-btn mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+        我还没有订阅
+      </button>
+    </p>
+  </main>
+  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+  <script async src="../js/script.js"></script>
+  <script>
+    var endpoint
+    var key
+    var authSecret
+    var savedPrompt
+    let isSubscribed = false;
+    const pushButton = document.querySelector('.js-push-btn')
+    function updateBtn() {
+      if (Notification.permission === 'denied') {
+        pushButton.textContent = '不允许推送'
+        return;
+      }
+      if (isSubscribed) {
+        pushButton.textContent = '我已经订阅了'
+      } else {
+        pushButton.textContent = '我还没有订阅'
+      }
+    }
+    // 客户端和服务端都需要公钥，以确保消息是加密过的
+    var vapidPublicKey = 'BMAlhB7p-rgnjc3kIy-SKjrx6i5wz97Gfy7c9kDGcIGwemqnP7MDDKtkxYEtffFrHOcTRhURhvC7awjrzrFAld0'
+    // 需要将 VAPID 钥从 base64 字符串转换成 Uint8 数组，因为这是 VAPID 规范要求的
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4)
+      const base64 = (base64String + padding)
+        .replace(/\-/g, '+')
+        .replace(/_/g, '/')
+      const rawData = window.atob(base64)
+      const outputArray = new Uint8Array(rawData.length)
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i)
+      }
+      console.log(outputArray)
+      return outputArray
+    }
+    window.addEventListener('load', function () {
+      if ('serviceWorker' in navigator) {
+        $('#isSupport').text('支持')
+        // 开始注册service workers
+        navigator.serviceWorker.register('../service-worker.js', {
+            scope: './' // 对整个站点生效 能够在根目录下执行fetch事件
+        })
+        .then(function (registration) {
+          // registration.update() 手动更新
+          var serviceWorker
+          if (registration.installing) {
+            serviceWorker = registration.installing
+            $('#state').text('installing')
+          } else if (registration.waiting) {
+            serviceWorker = registration.waiting
+            $('#state').text('waiting')
+          } else if (registration.active) {
+            serviceWorker = registration.active
+            $('#state').text('active')
+          } else {}
+          if (serviceWorker) {
+            $('#swState').text(serviceWorker.state)
+            serviceWorker.addEventListener('statechange', function (e) {
+                $('#swState').append('&emsp;状态变化为' + e.target.state)
+            })
+          } else {}
+          // 获取任何已存在的订阅
+          return registration.pushManager.getSubscription()
+            .then(function (subscription) {
+              // 如果已经订阅过了，则无需再次注册
+              if (subscription) {
+                console.log('已经订阅了')
+                console.log('User is subscribed.')
+                isSubscribed = true
+                updateBtn()
+                registration.showNotification('Hello World!')
+                return
+              }
+              // 还没有订阅过，则显示一个提示
+              return registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+              })
+              .then(function (subscription) {
+                console.log('User is subscribed.')
+                isSubscribed = true
+                updateBtn()
+              })
+              .catch(function (err) {
+                console.log('订阅失败:' + err)
+              })
+            })
+          })
+        .catch (function (error) {
+          // $('#isSuccess').text('注册没有成功')
+          console.log('ServiceWorker registration failed: ', error)
+        })
+      } else {
+        $('#isSupport').text('不支持')
+      }
+      
+      window.addEventListener('beforeinstallprompt', function (e) {
+        alert('beforeinstallprompt事件触发')
+        // 将事件返回存储起来
+        savedPrompt = e
+        // 取消默认事件
+        e.preventDefault()
+        return false
+      })
+      var btnSave = document.getElementById('btnSave')
+      btnSave.addEventListener('click', function () {
+        alert('点击了:' + savedPrompt)
+        if (savedPrompt !== undefined) {                                                       
+          savedPrompt.prompt() 
+          savedPrompt.userChoice.then(function (result) {
+            // 点击了决绝
+            if (result.outcome == 'dismissed') {
+              alert('User dismissed homescreen install')
+            } else {
+              alert('User added to homescreen')
+            }
+            savedPrompt = null
+          })
+        }
+      })
+    })
+  </script>
+{% endblock %}
