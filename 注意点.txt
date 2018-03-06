@@ -38,3 +38,39 @@ PWA的核心技术
 * 第二步，应该是 Service Worker 来提升基础性能，离线提供静态文件，把用户首屏体验提升上来
 * 第三步，App Manifest，这一步可以和第二步同时进行
 * 后续，再考虑其他的特性，离线消息推送等
+
+
+
+
+Service Worker 做缓存处理
+ self.addEventListener('install', event => {
+  // 但是建议只做一些轻量级和非常重要资源的缓存，减少安装失败的概率
+  // 安装阶段跳过等待，直接进入 active
+   event.waitUntil(self.skipWaiting())
+ })
+install
+安装
+self.addEventListener('activate', function (event) {
+   // event.waitUntil(self.clients.claim())
+   console.log('activate~')
+   event.waitUntil(
+     Promise.all([
+       // 更新客户端
+       self.clients.claim(),
+       // 清理旧版本
+       caches.keys().then(function (cacheList) {
+         return Promise.all(
+           cacheList.map(function (cacheName) {
+               return caches.delete(cacheName)
+           })
+         )
+       })
+     ])
+   )
+ })
+activate
+激活
+fetch
+请求
+当service worker 被修改时,会安装新的service worker并install,但是旧的service worker仍然在运行,所以新的service worker会进入waiting状态. 为了避免这种情况 需要在install监听中添加self.skipWaiting()跳过waiting状态,直接进入activate状态,在activate监听中通过clients.claim()更新所有客户端上的service worker
+根据需求缓存浏览器请求	
