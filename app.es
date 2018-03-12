@@ -9,7 +9,6 @@ import babel_co from 'babel-core';
 import babel_polyfill from 'babel-polyfill'
 import initController from './controller/initController';
 
-
 initController.init(app,router);
 
 app.use(serve(path.join(__dirname, 'public')));
