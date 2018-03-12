@@ -1,1 +1,2 @@
-console.log('script.js 12345678910')
+console.log('script.js')
+// alert(3)

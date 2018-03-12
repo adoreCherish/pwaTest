@@ -4,6 +4,11 @@ const indexController = {
     return async(ctx, next) => {
         ctx.body = await ctx.render('./test')
       }
+  },
+  newHtml(){
+  	return async(ctx, next) => {
+  		ctx.body = await ctx.render('./new')
+  	}
   }
 }
 export default indexController;

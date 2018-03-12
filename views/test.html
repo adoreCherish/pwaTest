@@ -2,6 +2,8 @@
 {% block title %}My Page{% endblock %}
 {% block head %}
     <!-- <link rel="stylesheet" href="../css/style.css"> -->
+    <meta name="msapplication-TileImage" content="images/logo/144x144.png">
+    <meta name="msapplication-TileColor" content="#2F3BA2">
     <link rel="manifest" href="../manifest.json">
 <!-- {% parent %} -->
     <!-- <link rel="stylesheet" href="custom.css"> -->
@@ -11,7 +13,6 @@
   <!-- <img src="./images/timg.jpg" alt="" /> -->
   <!-- 禁用基础的javascript文件 -->
   <h1>hello caching world</h1>
-  <h3>一些提示信息</h3>
   <ul>
       <li>浏览器是否支持：<span id="isSupport"></span></li>
       <li>service worker是否注册成功：<span id="isSuccess"></span></li>
@@ -28,6 +29,10 @@
       </button>
     </p>
   </main>
+  <!-- <img src="../images/homescreen.png"> -->
+  <div>
+    <span message="postMessage"></span>
+  </div>
   <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
   <script async src="../js/script.js"></script>
   <script>
@@ -35,8 +40,19 @@
     var key
     var authSecret
     var savedPrompt
-    let isSubscribed = false;
+    let isSubscribed = false
     const pushButton = document.querySelector('.js-push-btn')
+    // 页面发消息给 serviceWorker
+    function sendMsg(msg) {
+      const controller = navigator.serviceWorker.controller;
+      if (!controller) {
+        return;
+      }
+      controller.postMessage(msg, []);
+    }
+    // function onMessage(e) {
+    //   console.log('onMessage data :' + e.data)
+    // }
     function updateBtn() {
       if (Notification.permission === 'denied') {
         pushButton.textContent = '不允许推送'
@@ -72,6 +88,12 @@
             scope: './' // 对整个站点生效 能够在根目录下执行fetch事件
         })
         .then(function (registration) {
+          // navigator.serviceWorker.ready.then(function(swRegistration) {
+          //     return swRegistration.sync.register('myFirstSync');
+          // })
+          navigator.serviceWorker.addEventListener('message', (e)=>{
+            console.log('onMessage data :' + e.data)
+          });
           // registration.update() 手动更新
           var serviceWorker
           if (registration.installing) {
@@ -99,7 +121,55 @@
                 console.log('User is subscribed.')
                 isSubscribed = true
                 updateBtn()
-                registration.showNotification('Hello World!')
+                registration.showNotification('Hello World~!', {
+                  body: '这是一条消息推送~',
+                  data: {
+                    time: (new Date()).toString(),
+                    message: 'Hello World coffee!'
+                  },
+                  // icon: 'images/homescreen.png'
+                  actions: [
+                    {
+                        action: 'coffee-action',
+                        title: 'Coffee',
+                        icon: 'images/homescreen.png'
+                    },
+                    {
+                        action: 'doughnut-action',
+                        title: 'Doughnut',
+                        icon: 'path/to/action-2.png'
+                    }
+                    // google 只支持2条记录
+                    // {
+                    //     action: 'gramophone-action',
+                    //     title: 'gramophone',
+                    //     icon: 'images/homescreen.png'
+                    // },
+                    // {
+                    //     action: 'atom-action',
+                    //     title: 'Atom',
+                    //     icon: 'path/to/action-4.png'
+                    // }
+                  ],
+                  dir:'ltr',// auto ltr rtl
+                  vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 450, 110, 200, 110, 170, 40, 500],
+                  // sound: 'path/to/sound.mp3' //浏览器都不支持
+                  // timestamp: Date.parse('01 Mar 2018 16:33:00')
+                })
+                // registration.showNotification('Notification 1 of 3', {
+                //   body: 'With \'tag\' of \'message-group-1\'',
+                //   tag: 'message-group-1'
+                // });
+                // registration.showNotification('Notification 2 of 3', {
+                //   body: 'With \'tag\' of \'message-group-2\'',
+                //   tag: 'message-group-2'
+                // });
+                // registration.showNotification('Notification 1 of 3', {
+                //   body: 'With \'tag\' of \'message-group-1\'',
+                //   tag: 'message-group-1',
+                //   // silent: true,// 静音 优先级高于renotifiy
+                //   renotify: true // 相同的两条记录 为了使替换的那条也出现震动的效果
+                // });
                 return
               }
               // 还没有订阅过，则显示一个提示
@@ -108,6 +178,7 @@
                 applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
               })
               .then(function (subscription) {
+                console.log('subscription:' + subscription)
                 console.log('User is subscribed.')
                 isSubscribed = true
                 updateBtn()
@@ -117,14 +188,32 @@
               })
             })
           })
+        .then(function () { 
+          sendMsg('hello sw~!')
+        })
         .catch (function (error) {
-          // $('#isSuccess').text('注册没有成功')
+          $('#isSuccess').text('注册没有成功')
           console.log('ServiceWorker registration failed: ', error)
         })
       } else {
         $('#isSupport').text('不支持')
       }
-      
+      window.addEventListener('offline', function() {
+        // alert('触发了 offline')
+          Notification.requestPermission().then(grant => {
+              if (grant !== 'granted') {
+                  return;
+              }
+              const notification = new Notification("Hi，网络不给力哟", {
+                  body: '您的网络貌似离线了，不过在志文工作室里访问过的页面还可以继续打开~'
+                  // icon: '//lzw.me/images/avatar/lzwme-80x80.png'
+              });
+              // notification.onclick = function() {
+              //   console.log('点击了')
+              //     notification.close();
+              // };
+          });
+      });
       window.addEventListener('beforeinstallprompt', function (e) {
         alert('beforeinstallprompt事件触发')
         // 将事件返回存储起来
@@ -133,17 +222,20 @@
         e.preventDefault()
         return false
       })
+      // window.addEventListener('message', function(ev) {
+      //   console.log('从service worker中获取的消息:' + ev);
+      // });
       var btnSave = document.getElementById('btnSave')
       btnSave.addEventListener('click', function () {
-        alert('点击了:' + savedPrompt)
+        console.log('点击了:' + savedPrompt)
         if (savedPrompt !== undefined) {                                                       
           savedPrompt.prompt() 
           savedPrompt.userChoice.then(function (result) {
             // 点击了决绝
             if (result.outcome == 'dismissed') {
-              alert('User dismissed homescreen install')
+              console.log('User dismissed homescreen install')
             } else {
-              alert('User added to homescreen')
+              console.log('User added to homescreen')
             }
             savedPrompt = null
           })

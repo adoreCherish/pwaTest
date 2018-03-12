@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -24,7 +24,7 @@ var indexController = {
                 ctx.body = _context.sent;
 
               case 3:
-              case "end":
+              case 'end':
                 return _context.stop();
             }
           }
@@ -33,6 +33,34 @@ var indexController = {
 
       return function (_x, _x2) {
         return _ref.apply(this, arguments);
+      };
+    }();
+  },
+  newHtml: function newHtml() {
+    var _this2 = this;
+
+    return function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(ctx, next) {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return ctx.render('./new');
+
+              case 2:
+                ctx.body = _context2.sent;
+
+              case 3:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, _this2);
+      }));
+
+      return function (_x3, _x4) {
+        return _ref2.apply(this, arguments);
       };
     }();
   }

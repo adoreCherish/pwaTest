@@ -1,10 +1,11 @@
 // 缓存的名称
-var cacheName = 'hellow pwa'
+var cacheName = 'hellow pwa '
 // console.log(self)
 // 进入service worker 的安装事件 
 self.addEventListener('install', event => {
   // console.log(ENV)
   // 安装阶段跳过等待，直接进入 active
+  // event.waitUntil 在服务工作线程中，延长事件的寿命从而阻止浏览器在事件中的异步操作完成之前终止服务工作线程
   event.waitUntil(self.skipWaiting())
   // 但是建议只做一些轻量级和非常重要资源的缓存，减少安装失败的概率
   // 使用指定的缓存名称来打开缓存
@@ -28,7 +29,7 @@ self.addEventListener('install', event => {
 // ))
 self.addEventListener('activate', function (event) {
   // event.waitUntil(self.clients.claim())
-  console.log('activate~')
+  console.log('activate~~')
   event.waitUntil(
     Promise.all([
       // 更新客户端
@@ -47,6 +48,7 @@ self.addEventListener('activate', function (event) {
 // 添加fetch事件的事件监听器
 self.addEventListener('fetch', function (event) {
   console.log('fetch 事件生效了')
+  // 为来自受控页面的request生成自定义的response
   event.respondWith(
     // 检查传入的请求 url 是否匹配当前缓存中存在的任何内容
     // 检查缓存时想要忽略查询字符串 ignoreSearch ignoreMethod ignoreVary
@@ -60,6 +62,7 @@ self.addEventListener('fetch', function (event) {
         return response
       }
       // 否则 通过网络获取资源
+
       // return fetch(event.request)
       // 请求是一个流 只能消耗一次 所以需要克隆一次
       var requestToCache = event.request.clone()
@@ -81,6 +84,104 @@ self.addEventListener('fetch', function (event) {
     })
   )
 })
+self.addEventListener('message', function(ev) {
+    console.log('从test.html中获取的消息:' + ev.data);
+});
+// ServiceWorker 发消息给页面
+self.clients.matchAll().then(clientList => {
+	console.log('clientList')
+	console.log(clientList)
+	console.log('ServiceWorker 发消息给页面')
+  clientList.forEach(client => {
+  	// todo
+  	console.log('client:' + client)
+      client.postMessage('Hi, I am send from Service worker！');
+  })
+});
+
+self.addEventListener('sync', function(event) {
+  console.log(event.tag)
+  if (event.tag === 'test-tag-from-devtools') {
+    event.waitUntil(self.registration.showNotification('sync', {
+      body: 'Yay sync it works.'
+    }))
+  }
+});
+// 通知
+self.addEventListener('notificationclick', event => {
+  // 打开页面
+  // let examplePage = 'index/newHtml'
+  // let urlToOpen = new URL(examplePage, self.location.origin).href;
+  // console.log(urlToOpen)
+  // let promiseChain = clients.matchAll({
+  //   type: 'window',
+  //   includeUncontrolled: true
+  // }).then(windowClients => {
+  //   let matchingClient = null;
+
+  //   for (let i = 0, max = windowClients.length; i < max; i++) {
+  //       let windowClient = windowClients[i];
+  //       if (windowClient.url === urlToOpen) {
+  //           matchingClient = windowClient;
+  //           break;
+  //       }
+  //   }
+
+  //   return matchingClient
+  //       ? matchingClient.focus()
+  //       : clients.openWindow(urlToOpen);
+  // }).catch(error=>{
+  //   console.log(error)
+  // })
+
+  let examplePage = 'index/newHtml'
+  event.notification.close()
+  let promiseChain = clients.openWindow(examplePage);
+  event.waitUntil(promiseChain);
+
+  // console.log(event.action)
+  // 通过data值 获取相应的信息
+  // const notificationData = event.notification.data
+  // console.log(notificationData)
+  // Object.keys(notificationData).forEach(key => {
+  //   console.log(`${key}: ${notificationData[key]}`)
+  // })
+  // Object.keys(notificationData).forEach(key => {
+  //     console.log(`${key}: ${notificationData[key]}`)
+  // })
+
+
+  // console.log(event)
+  // if (!event.action) {
+  //       // 没有点击在按钮上
+  //       console.log('Notification Click.');
+  //       return;
+  //   }
+  // switch (event.action) {
+  //     case 'coffee-action':
+  //         console.log('User \'s coffee.');
+  //         const notificationData = event.notification.data;
+  //         console.log('The data notification had the following parameters:');
+  //         Object.keys(notificationData).forEach(key => {
+  //             console.log(`  ${key}: ${notificationData[key]}`);
+  //         });
+  //         break;
+  //     case 'doughnut-action':
+  //         console.log('User \'s doughnuts.');
+  //         break;
+  //     default:
+  //         console.log(`Unknown action clicked: '${event.action}'`);
+  //         break;
+  // }
+})
+
+// 取消通知
+self.addEventListener('notificationclose', event => {
+  console.log('取消了')
+  let dismissedNotification = event.notification;
+  // let promiseChain = notificationCloseAnalytics();
+  // event.waitUntil(promiseChain);
+});
 // /* eslint-disable max-len */
 // 
 // const applicationServerPublicKey = 'BMAlhB7p-rgnjc3kIy-SKjrx6i5wz97Gfy7c9kDGcIGwemqnP7MDDKtkxYEtffFrHOcTRhURhvC7awjrzrFAld0';
