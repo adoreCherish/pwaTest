@@ -1,6 +1,7 @@
 // 缓存的名称
-var cacheName = 'hellow pwa '
-// console.log(self)
+var cacheName = 'hellow pwa1'
+console.log('****navigator.serviceWorker sw')
+console.log(self) //ServiceWorkerGlobalScope
 // 进入service worker 的安装事件 
 self.addEventListener('install', event => {
   // console.log(ENV)
@@ -9,9 +10,9 @@ self.addEventListener('install', event => {
   event.waitUntil(self.skipWaiting())
   // 但是建议只做一些轻量级和非常重要资源的缓存，减少安装失败的概率
   // 使用指定的缓存名称来打开缓存
-  // event.waitUntil(caches.open(cacheName)
+  event.waitUntil(caches.open('libCache')
   // // 把已知的资源添加到缓存中 
-  // .then(cache => cache.addAll(['./js/script.js'])))
+  .then(cache => cache.addAll(['./lib/jquery.js'])))
 })
 // self.addEventListener('activate', event => event.waitUntil(
 //     Promise.all([
@@ -38,7 +39,9 @@ self.addEventListener('activate', function (event) {
       caches.keys().then(function (cacheList) {
         return Promise.all(
           cacheList.map(function (cacheName) {
+            if (cacheName !== 'libCache') {
               return caches.delete(cacheName)
+            }
           })
         )
       })
@@ -58,7 +61,7 @@ self.addEventListener('fetch', function (event) {
     .then(function (response) {
       // 如果有请求 且存在 就返回
       if (response) {
-        console.log('response success' + response)
+        console.log(1 + response.url)
         return response
       }
       // 否则 通过网络获取资源
@@ -69,6 +72,7 @@ self.addEventListener('fetch', function (event) {
       return fetch(requestToCache)
       .then(function (response) {
         if (!response || response.status !== 200) {
+          console.log(2)
           // 如果请求出错 直接返回错误
           return response
         }
@@ -76,6 +80,7 @@ self.addEventListener('fetch', function (event) {
         var responseToCache = response.clone()
         caches.open(cacheName)
         .then(function (cache) {
+          console.log(3 + response.url)
           // 放入缓存中
           cache.put(requestToCache, responseToCache)
         })

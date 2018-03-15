@@ -12,7 +12,6 @@
   <!-- 引用hello图片 -->
   <!-- <img src="../images/timg.jpg" alt="" /> -->
   <!-- 禁用基础的javascript文件 -->
-  <h1>hello caching world</h1>
   <ul>
       <li>浏览器是否支持：<span id="isSupport"></span></li>
       <li>service worker是否注册成功：<span id="isSuccess"></span></li>
@@ -31,7 +30,7 @@
   <div>
     <span message="postMessage"></span>
   </div>
-  <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+  <script src="../lib/jquery.js"></script>
   <script async src="../js/script.js"></script>
   <script>
     var endpoint
@@ -86,6 +85,8 @@
             scope: './' // 对整个站点生效 能够在根目录下执行fetch事件
         })
         .then(function (registration) {
+          console.log('****navigator.serviceWorker html')
+          console.log(navigator.serviceWorker) // ServiceWorkerContainer
           // navigator.serviceWorker.ready.then(function(swRegistration) {
           //     return swRegistration.sync.register('myFirstSync');
           // })
@@ -220,7 +221,7 @@
         e.preventDefault()
         return false
       })
-      // window.addEventListener('message', function(ev) {
+      // navigator.serviceWorker.addEventListener('message', function(ev) {
       //   console.log('从service worker中获取的消息:' + ev);
       // });
       var btnSave = document.getElementById('btnSave')
